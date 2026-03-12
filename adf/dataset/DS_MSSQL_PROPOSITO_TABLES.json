@@ -1,0 +1,16 @@
+{
+	"name": "DS_MSSQL_PROPOSITO_TABLES",
+	"properties": {
+		"description": "Points to all tables of proposito database.",
+		"linkedServiceName": {
+			"referenceName": "LS_BUNDG01_MSSQL_PROPOSITO",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "BUNDG01"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	}
+}

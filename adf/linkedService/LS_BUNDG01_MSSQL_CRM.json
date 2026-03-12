@@ -1,0 +1,22 @@
+{
+	"name": "LS_BUNDG01_MSSQL_CRM",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Links to CRM SQL EXPRESS Instance + DB.",
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"server": "BUNDG01\\SQLEXPRESS",
+			"database": "CRM",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "azure_login",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJmYjRhN2RmMS1kMWY5LTQxNDMtOWUwZC00ZmVjYWEyYWE1N2MiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "SHIR-BUNDG01",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

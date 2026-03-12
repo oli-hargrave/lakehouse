@@ -1,0 +1,268 @@
+{
+	"name": "PL_PROPOSITO_CRM_SYNC",
+	"properties": {
+		"description": "Predefined query extract on proposito tables for CRM. \n",
+		"activities": [
+			{
+				"name": "For Each Table",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Tables Array",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Tables Array').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "Copy Queries",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "@item().src_query",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"preCopyScript": {
+										"value": "@concat(\n  'IF OBJECT_ID(''',\n  item().snk_schema_name, '.', item().snk_table_name,\n  ''',''U'') IS NOT NULL DROP TABLE ',\n  item().snk_schema_name, '.', item().snk_table_name,\n  ';'\n)",
+										"type": "Expression"
+									},
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false,
+									"tableOption": "autoCreate"
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_MSSQL_PROPOSITO_TABLES",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_MSSQL_CRM_TABLES_SP",
+									"type": "DatasetReference",
+									"parameters": {
+										"schema": {
+											"value": "@item().snk_schema_name",
+											"type": "Expression"
+										},
+										"table_name": {
+											"value": "@item().snk_table_name",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Lookup Tables Array",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "proposito_crm_sync",
+							"wildcardFileName": "tables_array.json",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "DS_ADLSGEN2_INGEST_JSON",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Exec Marketing Area Merge",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "For Each Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "erp.MergeMarketingAreas"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_BUNDG01_MSSQL_CRM",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Exec Employees Merge",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Exec Marketing Area Merge",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "erp.MergeEmployees"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_BUNDG01_MSSQL_CRM",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Exec Sales Data Replace",
+				"description": "Temporary measure that replaces the sales data in a committed transactions, rather then a precopy script.",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Exec Customer Replace",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "erp.ReplaceSalesData"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_BUNDG01_MSSQL_CRM",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Exec Customer Replace",
+				"description": "Temporary measure for connects to erp customers table.",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Exec Employees Merge",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "erp.ReplaceCustomers"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_BUNDG01_MSSQL_CRM",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Exec Customer Merge",
+				"description": "Temporary measure for connects to erp customers table.",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Exec Sales Data Replace",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "erp.MergeCustomerData"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_BUNDG01_MSSQL_CRM",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": []
+	}
+}

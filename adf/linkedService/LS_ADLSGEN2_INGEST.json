@@ -1,0 +1,15 @@
+{
+	"name": "LS_ADLSGEN2_INGEST",
+	"properties": {
+		"description": "ADF container for Ingestion storage account. ",
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://ingestionstprod.dfs.core.windows.net/"
+		},
+		"connectVia": {
+			"referenceName": "IR-AUTORESOLVE",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

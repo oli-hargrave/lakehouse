@@ -1,0 +1,37 @@
+[
+    {
+        "src_schema_name": "pro",
+        "src_table_name": "Employees",
+        "snk_schema_name": "erp",
+        "snk_table_name": "Employees",
+        "src_query": " select * from pro.Employees"
+    },
+    {
+        "src_schema_name": "pro",
+        "src_table_name": "Customers",
+        "snk_schema_name": "erp",
+        "snk_table_name": "StageCustomers",
+        "src_query": " select * from pro.Customers"
+    },
+    {
+        "src_schema_name": "pro",
+        "src_table_name": "MarketingAreas",
+        "snk_schema_name": "erp",
+        "snk_table_name": "MarketingAreas",
+        "src_query": " select * from pro.MarketingAreas"
+    },
+    {
+        "src_schema_name": "pro",
+        "src_table_name": "CustomerContacts",
+        "snk_schema_name": "erp",
+        "snk_table_name": "CustomerContacts",
+        "src_query": " select * from pro.CustomerContacts"
+    },
+    {
+        "src_schema_name": "pro",
+        "src_table_name": "SalesTransactionLines",
+        "snk_schema_name": "erp",
+        "snk_table_name": "StageSalesData",
+        "src_query": "WITH Sales AS ( SELECT line.Id, line.SalesTransactionId, head.SourceQuoteTransactionId, line.SourceOrderTransactionLineId, types.Description AS TransactionType, head.TransactionDate, head.TransactionNumber, head.CustomerOrderNumber,head.CustomerId AS SourceCustomerId, head_status.Description AS HeadStatus, line_type.Description AS LineType, line_status.Description AS LineStatus, line.ProductId AS SourceProductId, product.Code AS Code, product.Description AS Description, product.ProductCategoryId, line.QuantityOrdered, line.LineAmountExcludingTax, line.NetQuantityDelivered, line.NetQuantityInvoiced, line.EstimatedDeliveryDate FROM pro.SalesTransactionLines AS line JOIN pro.SalesTransactions AS head ON line.SalesTransactionId = head.Id JOIN pro.Products AS product ON line.ProductId = product.Id LEFT JOIN enum.SalesTransactionTypes AS types ON head.TransactionTypeId = types.Id LEFT JOIN enum.SalesTransactionLineTypes AS line_type ON line.TransactionLineTypeId = line_type.Id LEFT JOIN enum.TransactionLineStatuses AS line_status ON line.LineStatusId = line_status.Id LEFT JOIN enum.TransactionStatuses AS head_status ON head.StatusId = head_status.Id WHERE product.ProductTypeId = 0 AND types.Description IN ('Order', 'Quote') AND TransactionDate <= GETUTCDATE() AND TransactionDate >= '2020-08-01' ) SELECT * FROM Sales"
+    }
+]

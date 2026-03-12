@@ -1,0 +1,35 @@
+{
+	"name": "DS_MSSQL_CRM_TABLES_SP",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_BUNDG01_MSSQL_CRM",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"schema": {
+				"type": "string",
+				"defaultValue": "erp"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "employees"
+			}
+		},
+		"folder": {
+			"name": "BUNDG01"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().table_name",
+				"type": "Expression"
+			}
+		}
+	}
+}

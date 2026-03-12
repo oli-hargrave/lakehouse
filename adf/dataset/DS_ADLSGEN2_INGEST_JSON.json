@@ -1,0 +1,43 @@
+{
+	"name": "DS_ADLSGEN2_INGEST_JSON",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLSGEN2_INGEST",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "AZURE"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileSystem": "adf"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"src_schema_name": {
+					"type": "string"
+				},
+				"src_table_name": {
+					"type": "string"
+				},
+				"snk_schema_name": {
+					"type": "string"
+				},
+				"snk_table_name": {
+					"type": "string"
+				},
+				"src_query": {
+					"type": "string"
+				},
+				"src_query_filename": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
