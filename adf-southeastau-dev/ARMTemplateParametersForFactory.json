@@ -32,8 +32,8 @@
 		"LS_BUNDG01_MSSQL_PROPOSITO_properties_typeProperties_userName": {
 			"value": "azure_login"
 		},
-		"SHIR-BUNDG01_properties_typeProperties_linkedInfo_resourceId": {
-			"value": "/subscriptions/e1798b20-5400-47cd-8a63-96cbeb75a685/resourcegroups/rg-adf-prod/providers/Microsoft.DataFactory/factories/adf-southeastau-prod/integrationruntimes/SHIR-BUNDG01"
+		"SHIR-BUNDG01-LNK_properties_typeProperties_linkedInfo_resourceId": {
+			"value": "/subscriptions/e1798b20-5400-47cd-8a63-96cbeb75a685/resourcegroups/rg-adf-prod/providers/Microsoft.DataFactory/factories/adf-runtimes-southeastau-prod/integrationruntimes/SHIR-BUNDG01"
 		}
 	}
 }
