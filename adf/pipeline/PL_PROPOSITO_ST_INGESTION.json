@@ -86,17 +86,118 @@
 							"typeProperties": {
 								"source": {
 									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "@if(\n    equals(item().load_type, 'incremental'),\n\n    concat(\n        ' SELECT * FROM ', \n        item().table_schema, '.', item().table_name,\n        ' WHERE ',\n        item().watermark_column,\n        ' >= ''',\n        formatDateTime(item().last_successful_watermark_utc, 'yyyy-MM-ddTHH:mm:ss'),\n        ''' AND ',\n        item().watermark_column,\n        ' <= ''',\n        formatDateTime(variables('var_watermark_utc'), 'yyyy-MM-ddTHH:mm:ss'),\n        ''''\n    ),\n\n    concat(\n        ' SELECT * FROM ', \n        item().table_schema, '.', item().table_name\n    )\n)",
+										"type": "Expression"
+									},
 									"queryTimeout": "02:00:00",
 									"partitionOption": "None"
 								},
-								"enableStaging": false
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
 							},
 							"inputs": [
 								{
 									"referenceName": "DS_MSSQL_PROPOSITO_TABLES",
 									"type": "DatasetReference"
 								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_STDBXLAKEHOUSE_PARQUET",
+									"type": "DatasetReference",
+									"parameters": {
+										"path": {
+											"value": "@concat(\r\n    pipeline().parameters.source_system, '/',\r\n    item().table_schema, '/', \r\n    item().table_name\r\n    )",
+											"type": "Expression"
+										},
+										"filename": {
+											"value": "@concat(\n    formatDateTime(variables('var_watermark_utc'),'yyyy-MM-ddTHHmmssZ'),\n    '.parquet'\n    )",
+											"type": "Expression"
+										}
+									}
+								}
 							]
+						},
+						{
+							"name": "Update Watermarks Table",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copy Tables to ST",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[update_watermarks]",
+								"storedProcedureParameters": {
+									"load_status": {
+										"value": {
+											"value": "@activity('Copy Tables to ST').output.executionDetails[0].status",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"source_system": {
+										"value": {
+											"value": "@pipeline().parameters.source_system",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"table_name": {
+										"value": {
+											"value": "@item().table_name",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"table_schema": {
+										"value": {
+											"value": "@item().table_schema",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"watermark_utc": {
+										"value": {
+											"value": "@variables('var_watermark_utc')",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_BUNDG01_MSSQL_METADATA",
+								"type": "LinkedServiceReference"
+							}
 						}
 					]
 				}
