@@ -1,0 +1,22 @@
+{
+	"name": "LS_BUNDG01_MSSQL_METADATA",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Extraction Metadata for DBX lakehouse ingestion.",
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"server": "BUNDG01",
+			"database": "extraction_metadata",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "azure_login",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIyZTZiYTlmZi1mZmU3LTQ0M2QtODgzNy1lYmU0ZWM3YzU4ODAiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "SHIR-BUNDG01-LNK",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
