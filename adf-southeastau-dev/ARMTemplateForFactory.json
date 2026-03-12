@@ -1,0 +1,563 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-southeastau-dev"
+		},
+		"LS_BUNDG01_MSSQL_CRM_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_BUNDG01_MSSQL_CRM'"
+		},
+		"LS_BUNDG01_MSSQL_PROPOSITO_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_BUNDG01_MSSQL_PROPOSITO'"
+		},
+		"LS_ADLSGEN2_INGEST_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://ingestionstprod.dfs.core.windows.net/"
+		},
+		"LS_BUNDG01_MSSQL_CRM_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "BUNDG01\\SQLEXPRESS"
+		},
+		"LS_BUNDG01_MSSQL_CRM_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "CRM"
+		},
+		"LS_BUNDG01_MSSQL_CRM_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "azure_login"
+		},
+		"LS_BUNDG01_MSSQL_PROPOSITO_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "BUNDG01"
+		},
+		"LS_BUNDG01_MSSQL_PROPOSITO_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "Proposito"
+		},
+		"LS_BUNDG01_MSSQL_PROPOSITO_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "azure_login"
+		},
+		"SHIR-BUNDG01_properties_typeProperties_linkedInfo_resourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e1798b20-5400-47cd-8a63-96cbeb75a685/resourcegroups/rg-adf-prod/providers/Microsoft.DataFactory/factories/adf-southeastau-prod/integrationruntimes/SHIR-BUNDG01"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_PROPOSITO_CRM_SYNC')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Predefined query extract on proposito tables for CRM. \n",
+				"activities": [
+					{
+						"name": "For Each Table",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup Tables Array",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup Tables Array').output.value",
+								"type": "Expression"
+							},
+							"isSequential": false,
+							"batchCount": 1,
+							"activities": [
+								{
+									"name": "Copy Queries",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": {
+												"value": "@item().src_query",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "SqlServerSink",
+											"preCopyScript": {
+												"value": "@concat(\n  'IF OBJECT_ID(''',\n  item().snk_schema_name, '.', item().snk_table_name,\n  ''',''U'') IS NOT NULL DROP TABLE ',\n  item().snk_schema_name, '.', item().snk_table_name,\n  ';'\n)",
+												"type": "Expression"
+											},
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false,
+											"tableOption": "autoCreate"
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_MSSQL_PROPOSITO_TABLES",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_MSSQL_CRM_TABLES_SP",
+											"type": "DatasetReference",
+											"parameters": {
+												"schema": {
+													"value": "@item().snk_schema_name",
+													"type": "Expression"
+												},
+												"table_name": {
+													"value": "@item().snk_table_name",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					},
+					{
+						"name": "Lookup Tables Array",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": "proposito_crm_sync",
+									"wildcardFileName": "tables_array.json",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "DS_ADLSGEN2_INGEST_JSON",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "Exec Marketing Area Merge",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "For Each Table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "erp.MergeMarketingAreas"
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_BUNDG01_MSSQL_CRM",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Exec Employees Merge",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Exec Marketing Area Merge",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "erp.MergeEmployees"
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_BUNDG01_MSSQL_CRM",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Exec Sales Data Replace",
+						"description": "Temporary measure that replaces the sales data in a committed transactions, rather then a precopy script.",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Exec Customer Replace",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "erp.ReplaceSalesData"
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_BUNDG01_MSSQL_CRM",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Exec Customer Replace",
+						"description": "Temporary measure for connects to erp customers table.",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Exec Employees Merge",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "erp.ReplaceCustomers"
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_BUNDG01_MSSQL_CRM",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Exec Customer Merge",
+						"description": "Temporary measure for connects to erp customers table.",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Exec Sales Data Replace",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "erp.MergeCustomerData"
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_BUNDG01_MSSQL_CRM",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_ADLSGEN2_INGEST_JSON')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_BUNDG01_MSSQL_CRM')]",
+				"[concat(variables('factoryId'), '/datasets/DS_MSSQL_PROPOSITO_TABLES')]",
+				"[concat(variables('factoryId'), '/datasets/DS_MSSQL_CRM_TABLES_SP')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLSGEN2_INGEST_JSON')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLSGEN2_INGEST",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "AZURE"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "adf"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"src_schema_name": {
+							"type": "string"
+						},
+						"src_table_name": {
+							"type": "string"
+						},
+						"snk_schema_name": {
+							"type": "string"
+						},
+						"snk_table_name": {
+							"type": "string"
+						},
+						"src_query": {
+							"type": "string"
+						},
+						"src_query_filename": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLSGEN2_INGEST')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_MSSQL_CRM_TABLES_SP')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_BUNDG01_MSSQL_CRM",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"schema": {
+						"type": "string",
+						"defaultValue": "erp"
+					},
+					"table_name": {
+						"type": "string",
+						"defaultValue": "employees"
+					}
+				},
+				"folder": {
+					"name": "BUNDG01"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().schema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().table_name",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_BUNDG01_MSSQL_CRM')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_MSSQL_PROPOSITO_TABLES')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Points to all tables of proposito database.",
+				"linkedServiceName": {
+					"referenceName": "LS_BUNDG01_MSSQL_PROPOSITO",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "BUNDG01"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_BUNDG01_MSSQL_PROPOSITO')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_ADLSGEN2_INGEST')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "ADF container for Ingestion storage account. ",
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('LS_ADLSGEN2_INGEST_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "IR-AUTORESOLVE",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/IR-AUTORESOLVE')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_BUNDG01_MSSQL_CRM')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Links to CRM SQL EXPRESS Instance + DB.",
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"server": "[parameters('LS_BUNDG01_MSSQL_CRM_properties_typeProperties_server')]",
+					"database": "[parameters('LS_BUNDG01_MSSQL_CRM_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_BUNDG01_MSSQL_CRM_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_BUNDG01_MSSQL_CRM_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "SHIR-BUNDG01",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/SHIR-BUNDG01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_BUNDG01_MSSQL_PROPOSITO')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Link to restore environment for Proposito backups. ",
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"server": "[parameters('LS_BUNDG01_MSSQL_PROPOSITO_properties_typeProperties_server')]",
+					"database": "[parameters('LS_BUNDG01_MSSQL_PROPOSITO_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_BUNDG01_MSSQL_PROPOSITO_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_BUNDG01_MSSQL_PROPOSITO_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "SHIR-BUNDG01",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/SHIR-BUNDG01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SHIR-BUNDG01')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"description": "Linked to Production SHIR",
+				"typeProperties": {
+					"linkedInfo": {
+						"resourceId": "[parameters('SHIR-BUNDG01_properties_typeProperties_linkedInfo_resourceId')]",
+						"authorizationType": "Rbac"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IR-AUTORESOLVE')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"description": "Copy of Production auto-resolve IR",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 10,
+							"cleanup": false,
+							"customProperties": []
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
