@@ -12,10 +12,10 @@
 			"trustServerCertificate": true,
 			"authenticationType": "SQL",
 			"userName": "azure_login",
-			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJmMmEzNTQ4OC0wZGQ4LTRlZDQtYTE0MC02NTlkMjA1ODVjM2EiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIyOTUxZDIxZi1lY2ZmLTQ4NmItYTI4Mi0yOTM4NjdkZjE2ZWEiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
 		},
 		"connectVia": {
-			"referenceName": "SHIR-BUNDG01",
+			"referenceName": "SHIR-BUNDG01-LNK",
 			"type": "IntegrationRuntimeReference"
 		}
 	}
