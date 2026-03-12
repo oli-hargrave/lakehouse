@@ -1,0 +1,9 @@
+{
+	"name": "adf-southeastau-dev",
+	"location": "australiasoutheast",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "315f3438-afd3-48b6-a2a8-de42393b82e1",
+		"tenantId": "737852bf-1f7a-4ad5-99d7-a3ec856b81b0"
+	}
+}
