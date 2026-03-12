@@ -1,5 +1,5 @@
 {
-	"name": "DS_ADLSGEN2_INGEST_JSON",
+	"name": "DS_INGESTIONSTPROD_ADF_JSON",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_ADLSGEN2_INGEST",

@@ -1,6 +1,118 @@
 {
-	"name": "PL_PROPOSITO_DBX_INGESTION",
+	"name": "PL_PROPOSITO_ST_INGESTION",
 	"properties": {
+		"activities": [
+			{
+				"name": "Set Watermark UTC",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup Watermark Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "var_watermark_utc",
+					"value": {
+						"value": "@formatDateTime(utcNow())",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Lookup Watermark Table",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_MSSQL_METADATA_WATERMARKS",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "For Each Table",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Set Watermark UTC",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Watermark Table').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 3,
+					"activities": [
+						{
+							"name": "Copy Tables to ST",
+							"description": "Copies Specified Proposito Tables to ",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_MSSQL_PROPOSITO_TABLES",
+									"type": "DatasetReference"
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"source_system": {
+				"type": "string",
+				"defaultValue": "proposito"
+			}
+		},
+		"variables": {
+			"var_watermark_utc": {
+				"type": "String"
+			}
+		},
 		"folder": {
 			"name": "Lakehouse"
 		},
