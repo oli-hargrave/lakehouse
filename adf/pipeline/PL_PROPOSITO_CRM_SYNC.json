@@ -263,6 +263,9 @@
 				}
 			}
 		],
+		"folder": {
+			"name": "Other"
+		},
 		"annotations": []
 	}
 }
