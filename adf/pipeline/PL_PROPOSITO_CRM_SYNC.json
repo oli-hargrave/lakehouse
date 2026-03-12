@@ -118,7 +118,7 @@
 						}
 					},
 					"dataset": {
-						"referenceName": "DS_INGESTIONSTPROD_ADF_JSON",
+						"referenceName": "DS_INGESTIONSTPROD_JSON",
 						"type": "DatasetReference"
 					},
 					"firstRowOnly": false

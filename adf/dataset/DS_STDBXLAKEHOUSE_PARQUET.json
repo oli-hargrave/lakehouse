@@ -1,5 +1,5 @@
 {
-	"name": "DS_STDBXLAKEHOUSE_LANDING_PARQUET",
+	"name": "DS_STDBXLAKEHOUSE_PARQUET",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_ADLSGEN2_STDBXLAKEHOUSE_LANDING",
@@ -12,7 +12,8 @@
 		"type": "Parquet",
 		"typeProperties": {
 			"location": {
-				"type": "AzureBlobFSLocation"
+				"type": "AzureBlobFSLocation",
+				"fileSystem": "landing"
 			},
 			"compressionCodec": "snappy"
 		},
