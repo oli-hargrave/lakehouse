@@ -1,0 +1,19 @@
+{
+	"name": "DS_MSSQL_METADATA_WATERMARKS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_BUNDG01_MSSQL_METADATA",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "BUNDG01"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "watermarks"
+		}
+	}
+}

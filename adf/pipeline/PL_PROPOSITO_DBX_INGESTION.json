@@ -1,0 +1,9 @@
+{
+	"name": "PL_PROPOSITO_DBX_INGESTION",
+	"properties": {
+		"folder": {
+			"name": "Lakehouse"
+		},
+		"annotations": []
+	}
+}
