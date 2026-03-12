@@ -12,7 +12,7 @@
 			"trustServerCertificate": true,
 			"authenticationType": "SQL",
 			"userName": "azure_login",
-			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJmYjRhN2RmMS1kMWY5LTQxNDMtOWUwZC00ZmVjYWEyYWE1N2MiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJmMmEzNTQ4OC0wZGQ4LTRlZDQtYTE0MC02NTlkMjA1ODVjM2EiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
 		},
 		"connectVia": {
 			"referenceName": "SHIR-BUNDG01",
