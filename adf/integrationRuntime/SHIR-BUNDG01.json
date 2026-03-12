@@ -1,0 +1,13 @@
+{
+	"name": "SHIR-BUNDG01",
+	"properties": {
+		"type": "SelfHosted",
+		"description": "Linked to Production SHIR",
+		"typeProperties": {
+			"linkedInfo": {
+				"resourceId": "/subscriptions/e1798b20-5400-47cd-8a63-96cbeb75a685/resourcegroups/rg-adf-prod/providers/Microsoft.DataFactory/factories/adf-southeastau-prod/integrationruntimes/SHIR-BUNDG01",
+				"authorizationType": "Rbac"
+			}
+		}
+	}
+}
