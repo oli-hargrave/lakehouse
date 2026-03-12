@@ -1,0 +1,9 @@
+{
+	"name": "adf-southeastaus-prod",
+	"location": "australiasoutheast",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "94ae437e-5565-4a1d-acc6-6fdaa35e6573",
+		"tenantId": "737852bf-1f7a-4ad5-99d7-a3ec856b81b0"
+	}
+}

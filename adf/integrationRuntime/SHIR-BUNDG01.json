@@ -1,0 +1,7 @@
+{
+	"name": "SHIR-BUNDG01",
+	"properties": {
+		"type": "SelfHosted",
+		"description": "Self-hosted integration-runtime for on-premise VM that manages extraction of database backups and CRM."
+	}
+}
